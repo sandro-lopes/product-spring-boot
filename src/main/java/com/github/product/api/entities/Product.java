@@ -14,9 +14,11 @@ import javax.validation.constraints.NotEmpty;
 import com.sun.istack.NotNull;
 
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Entity
 @Data
+@NoArgsConstructor
 public class Product implements Serializable {
 
 	private static final long serialVersionUID = 1L;
@@ -36,5 +38,10 @@ public class Product implements Serializable {
 	@NotNull
 	@Min(value = 0)
 	private Integer quantity;
-
+	
+	public Product(String name, BigDecimal price, Integer quantity){
+		this.name = name;
+		this.price = price;
+		this.quantity = quantity;
+	}
 }
