@@ -1,14 +1,18 @@
 package com.github.product.api.controllers;
 
-import java.util.UUID;
+import java.math.BigDecimal;
+import java.net.URI;
 
 import javax.validation.Valid;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort.Direction;
+import org.springframework.data.web.PageableDefault;
+import org.springframework.hateoas.server.mvc.WebMvcLinkBuilder;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.http.ResponseEntity.HeadersBuilder;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -16,9 +20,11 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.github.product.api.entities.Product;
+import com.github.product.api.exceptions.ResourceNotFoundException;
 import com.github.product.api.services.ProductService;
 
 @RestController
@@ -28,20 +34,14 @@ public class ProductController {
 	@Autowired
 	private ProductService service;
 	
-	@GetMapping("/{id}")
-	public ResponseEntity<Product> find(@PathVariable("id") UUID id) {
-		
-		Product product = service.find(id);
-		
-		return ResponseEntity
-				.ok(product);
-		
-	}
-	
 	@GetMapping
-	public ResponseEntity<Page<Product>> search() {
+	public ResponseEntity<Page<Product>> search(
+			@RequestParam(value = "name", required = false) final String name,
+			@RequestParam(value = "price", required = false) final BigDecimal price,
+			@RequestParam(value = "quantity", required = false) final Integer quantity,
+			@PageableDefault(sort = "id", direction = Direction.DESC) Pageable pageable) {
 		
-		Page<Product> page = service.search();
+		Page<Product> page = service.search(name, price, quantity, pageable);
 		
 		return ResponseEntity
 				.ok(page);
@@ -51,20 +51,36 @@ public class ProductController {
 	@Transactional
 	public ResponseEntity<Product> create(@Valid @RequestBody Product product) {
 
-		service.create(product);
+		Product newProduct = service.create(product);
+		
+		URI uri = WebMvcLinkBuilder
+				.linkTo(ProductController.class)
+				.slash(newProduct.getId())
+				.toUri();
 
 		return ResponseEntity
-				.created(null)
-				.body(product);
+				.created(uri)
+				.body(newProduct);
+	}
+	
+	@GetMapping("/{id}")
+	public ResponseEntity<Product> find(@PathVariable("id") Integer id) {
+		
+		Product product = service.find(id).orElseThrow(ResourceNotFoundException::new);
+		
+		return ResponseEntity
+				.ok(product);
+		
 	}
 	
 	@PutMapping("id")
 	@Transactional
-	public HeadersBuilder<?> update(@Valid @RequestBody Product product) {
+	public ResponseEntity<Void> update(@Valid @RequestBody Product product) {
 		
 		service.update(product);
 		
 		return ResponseEntity
-				.noContent();
+				.noContent()
+				.build();
 	}
 }
