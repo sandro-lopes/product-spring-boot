@@ -17,6 +17,9 @@
 	<properties>
 		<java.version>1.8</java.version>
 		<maven-jar-plugin.version>3.1.1</maven-jar-plugin.version>
+  		<sonar.projectKey>sandro-lopes_product-spring-boot</sonar.projectKey>
+  		<sonar.organization>microservices-demos</sonar.organization>
+		<sonar.host.url>https://sonarcloud.io</sonar.host.url>
 	</properties>
 
 	<dependencies>
