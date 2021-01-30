@@ -5,7 +5,6 @@ import java.net.URI;
 
 import javax.validation.Valid;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort.Direction;
@@ -24,15 +23,17 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.github.product.api.entities.Product;
-import com.github.product.api.exceptions.ResourceNotFoundException;
+import com.github.product.api.exceptions.NotFoundException;
 import com.github.product.api.services.ProductService;
 
+import lombok.RequiredArgsConstructor;
+
 @RestController
-@RequestMapping(produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
+@RequestMapping(produces = MediaType.APPLICATION_JSON_VALUE)
+@RequiredArgsConstructor
 public class ProductController {
 
-	@Autowired
-	private ProductService service;
+	private final ProductService service;
 	
 	@GetMapping
 	public ResponseEntity<Page<Product>> search(
@@ -47,7 +48,7 @@ public class ProductController {
 				.ok(page);
 	}
 	
-	@PostMapping
+	@PostMapping (consumes = MediaType.APPLICATION_JSON_VALUE)
 	@Transactional
 	public ResponseEntity<Product> create(@Valid @RequestBody Product product) {
 
@@ -66,21 +67,20 @@ public class ProductController {
 	@GetMapping("/{id}")
 	public ResponseEntity<Product> find(@PathVariable("id") Integer id) {
 		
-		Product product = service.find(id).orElseThrow(ResourceNotFoundException::new);
+		Product product = service.find(id).orElseThrow(NotFoundException::new);
 		
 		return ResponseEntity
 				.ok(product);
-		
 	}
 	
-	@PutMapping("id")
+	@PutMapping(path = "/{id}", consumes = MediaType.APPLICATION_JSON_VALUE)
 	@Transactional
-	public ResponseEntity<Void> update(@Valid @RequestBody Product product) {
+	public ResponseEntity<Product> update(@PathVariable Integer id, @Valid @RequestBody Product product) {
 		
-		service.update(product);
+		Product productUpdated = service.update(id, product);
 		
 		return ResponseEntity
-				.noContent()
-				.build();
+				.ok()
+				.body(productUpdated);
 	}
 }
