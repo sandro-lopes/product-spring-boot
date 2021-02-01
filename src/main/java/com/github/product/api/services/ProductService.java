@@ -47,6 +47,10 @@ public class ProductService {
 		product.setId(id);
 		return repository.save(product);
 	}
+	
+	public void delete(Integer id) {
+		repository.deleteById(id);
+	}
 
 	public Optional<Product> find(Integer id) {
 		return repository.findById(id);
