@@ -35,6 +35,7 @@ import org.valid4j.matchers.jsonpath.JsonPathMatchers;
 
 import com.github.product.api.ProductSpringBootApiApplication;
 
+
 @SpringBootTest(classes = ProductSpringBootApiApplication.class, webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @DisplayName("Product Controller Integration Tests")
 @Sql("/sql/clean_up.sql")
@@ -45,7 +46,7 @@ public class ProductControllerIT {
 
 	@LocalServerPort
 	private int port;
-
+	
 	@Autowired
 	private TestRestTemplate restTemplate;
 	
@@ -74,8 +75,8 @@ public class ProductControllerIT {
 		final HttpEntity<String> entity = new HttpEntity<String>(headers);
 		final ResponseEntity<String> response = restTemplate.exchange(buildURL(port), HttpMethod.GET, entity, String.class);
 
+		assertThat(response.getHeaders().getContentType(), is(MediaType.APPLICATION_JSON));
 		assertThat(response.getStatusCode(), is(HttpStatus.OK));
-		assertEquals(MediaType.APPLICATION_JSON, response.getHeaders().getContentType());
 	}
 	
 	
@@ -88,8 +89,8 @@ public class ProductControllerIT {
 		final HttpEntity<String> entity = new HttpEntity<String>(headers);
 		final ResponseEntity<String> response = restTemplate.exchange(buildURL(port, ENDPOINT_DOCUMENT), HttpMethod.GET, entity, String.class, idDefaultParam);
 
-		assertEquals(HttpStatus.OK, response.getStatusCode());
-		assertEquals(MediaType.APPLICATION_JSON, response.getHeaders().getContentType());
+		assertThat(response.getHeaders().getContentType(), is(MediaType.APPLICATION_JSON));
+		assertThat(response.getStatusCode(), is(HttpStatus.OK));
 		
 		final String expected = jsonFromFile("classpath:json/response-resource.json");
 		JSONAssert.assertEquals(expected, response.getBody(), JSONCompareMode.LENIENT);
@@ -106,9 +107,9 @@ public class ProductControllerIT {
 		final String json = jsonFromFile("classpath:json/post-valid-payload.json");
 		final HttpEntity<String> entity = new HttpEntity<String>(json, headers);
 		final ResponseEntity<String> response = restTemplate.postForEntity(buildURL(port), entity, String.class);
-
-		assertEquals(HttpStatus.CREATED, response.getStatusCode());
-		assertEquals(MediaType.APPLICATION_JSON, response.getHeaders().getContentType());
+		
+		assertThat(response.getHeaders().getContentType(), is(MediaType.APPLICATION_JSON));
+		assertThat(response.getStatusCode(), is(HttpStatus.CREATED));
 		assertThat(response.getHeaders(), hasKey(HttpHeaders.LOCATION));
 	}
 	
@@ -122,7 +123,7 @@ public class ProductControllerIT {
 		final HttpEntity<String> entity = new HttpEntity<String>(json, headers);
 		final ResponseEntity<String> response = restTemplate.postForEntity(buildURL(port), entity, String.class);
 
-		assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+		assertThat(response.getStatusCode(), is(HttpStatus.BAD_REQUEST));
 	}
 
 	@Test
@@ -137,8 +138,8 @@ public class ProductControllerIT {
 		final HttpEntity<String> entity = new HttpEntity<String>(json, headers);
 		final ResponseEntity<String> response = restTemplate.postForEntity(buildURL(port), entity, String.class);
 
-		assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
-		assertEquals(MediaType.APPLICATION_JSON, response.getHeaders().getContentType());
+		assertThat(response.getHeaders().getContentType(), is(MediaType.APPLICATION_JSON));
+		assertThat(response.getStatusCode(), is(HttpStatus.BAD_REQUEST));
 	}
 	
 	@Test
@@ -153,8 +154,8 @@ public class ProductControllerIT {
 		final HttpEntity<String> entity = new HttpEntity<String>(json.toString(), headers);
 		final ResponseEntity<String> response = restTemplate.exchange(buildURL(port, ENDPOINT_DOCUMENT), HttpMethod.PUT, entity, String.class, idDefaultParam);
 
-		assertEquals(HttpStatus.OK, response.getStatusCode());
-		assertEquals(MediaType.APPLICATION_JSON, response.getHeaders().getContentType());
+		assertThat(response.getHeaders().getContentType(), is(MediaType.APPLICATION_JSON));
+		assertThat(response.getStatusCode(), is(HttpStatus.OK));
 		assertThat(response.getBody(), JsonPathMatchers.hasJsonPath("$.id", is(1)));
 		assertThat(response.getBody(), JsonPathMatchers.hasJsonPath("$.name", is(json.get("name"))));
 	}
@@ -162,7 +163,7 @@ public class ProductControllerIT {
 	@Test
 	@Sql("/sql/load_data.sql")
 	@Sql(scripts = "/sql/clean_up.sql", executionPhase = ExecutionPhase.AFTER_TEST_METHOD)
-	@DisplayName("It must not update a specific product with a repeated name| HTTP 400")
+	@DisplayName("It must not update a specific product with a repeated name | HTTP 400")
 	public void updateWithRepeatedNameTest() throws Exception {
 
 		headers.setContentType(MediaType.APPLICATION_JSON);
@@ -176,6 +177,20 @@ public class ProductControllerIT {
 	}
 	
 	@Test
+	@DisplayName("It must not update an inexistent product | HTTP 404")
+	public void updateInexistentTest() throws Exception {
+
+		headers.setContentType(MediaType.APPLICATION_JSON);
+
+		final JSONObject json = new JSONObject(jsonFromFile("classpath:json/update-valid-payload.json"));
+		final HttpEntity<String> entity = new HttpEntity<String>(json.toString(), headers);
+		final ResponseEntity<String> response = restTemplate.exchange(buildURL(port, ENDPOINT_DOCUMENT), HttpMethod.PUT, entity, String.class, idDefaultParam);
+
+		assertThat(response.getHeaders().getContentType(), is(MediaType.APPLICATION_JSON));
+		assertThat(response.getStatusCode(), is(HttpStatus.NOT_FOUND));
+	}
+	
+	@Test
 	@Sql("/sql/create.sql")
 	@Sql(scripts = "/sql/clean_up.sql", executionPhase = ExecutionPhase.AFTER_TEST_METHOD)
 	@DisplayName("It must delete a specific product | HTTP 204")
@@ -185,6 +200,6 @@ public class ProductControllerIT {
 
 		final ResponseEntity<String> response = restTemplate.exchange(buildURL(port, ENDPOINT_DOCUMENT), HttpMethod.DELETE, HttpEntity.EMPTY, String.class, idDefaultParam);
 
-		assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
+		assertThat(response.getStatusCode(), is(HttpStatus.NO_CONTENT));
 	}
 }

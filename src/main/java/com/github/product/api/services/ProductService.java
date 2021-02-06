@@ -9,7 +9,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import com.github.product.api.entities.Product;
-import com.github.product.api.exceptions.ConflictException;
+import com.github.product.api.exceptions.BusinessException;
 import com.github.product.api.exceptions.NotFoundException;
 import com.github.product.api.repositories.ProductRepository;
 import com.github.product.api.utils.Message;
@@ -27,8 +27,7 @@ public class ProductService {
 	public Product create(Product product) {
 
 		if (repository.existsByName(product.getName())) {
-			// TODO Criar uma exceção chamada BusinessExecpetion
-			throw new ConflictException(message.get("product.same.name.exists"));
+			throw new BusinessException(message.get("product.same.name.exists"));
 		}
 
 		return repository.saveAndFlush(product);
@@ -41,11 +40,11 @@ public class ProductService {
 		}
 
 		if(repository.existsAnotherWithSameName(id, product.getName())) {
-			throw new ConflictException(message.get("product.same.name.exists"));
+			throw new BusinessException(message.get("product.same.name.exists"));
 		}
 
 		product.setId(id);
-		return repository.save(product);
+		return repository.saveAndFlush(product);
 	}
 	
 	public void delete(Integer id) {
@@ -57,7 +56,12 @@ public class ProductService {
 	}
 
 	public Page<Product> search(String name, BigDecimal price, Integer quantity, Pageable pageable) {
-		Example<Product> example = Example.of(new Product(name, price, quantity));
+		Product product = Product.builder()
+				.name(name)
+				.price(price)
+				.quantity(quantity)
+				.build();
+		Example<Product> example = Example.of(product);
 		return repository.findAll(example, pageable);
 	}
 

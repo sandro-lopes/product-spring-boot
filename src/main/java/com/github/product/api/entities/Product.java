@@ -13,18 +13,25 @@ import javax.validation.constraints.NotEmpty;
 
 import com.sun.istack.NotNull;
 
-import lombok.Data;
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @Entity
-@Data
+@Getter
+@Builder
 @NoArgsConstructor
+@AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class Product implements Serializable {
 
 	private static final long serialVersionUID = 1L;
 	
 	@Id
 	@GeneratedValue
+	@Setter
 	private Integer id;
 	
 	@NotEmpty
@@ -38,10 +45,4 @@ public class Product implements Serializable {
 	@NotNull
 	@Min(value = 0)
 	private Integer quantity;
-	
-	public Product(String name, BigDecimal price, Integer quantity){
-		this.name = name;
-		this.price = price;
-		this.quantity = quantity;
-	}
 }
