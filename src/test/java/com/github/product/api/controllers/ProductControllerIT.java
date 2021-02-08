@@ -42,7 +42,7 @@ import com.github.product.api.ProductSpringBootApiApplication;
 @ActiveProfiles("test")
 public class ProductControllerIT {
 	
-	private static final String ENDPOINT_DOCUMENT = "/{id}";
+	private static final String ENDPOINT_RESOURCE = "/{id}";
 
 	@LocalServerPort
 	private int port;
@@ -87,7 +87,7 @@ public class ProductControllerIT {
 	public void findTest() throws Exception {
 		
 		final HttpEntity<String> entity = new HttpEntity<String>(headers);
-		final ResponseEntity<String> response = restTemplate.exchange(buildURL(port, ENDPOINT_DOCUMENT), HttpMethod.GET, entity, String.class, idDefaultParam);
+		final ResponseEntity<String> response = restTemplate.exchange(buildURL(port, ENDPOINT_RESOURCE), HttpMethod.GET, entity, String.class, idDefaultParam);
 
 		assertThat(response.getHeaders().getContentType(), is(MediaType.APPLICATION_JSON));
 		assertThat(response.getStatusCode(), is(HttpStatus.OK));
@@ -152,7 +152,7 @@ public class ProductControllerIT {
 
 		final JSONObject json = new JSONObject(jsonFromFile("classpath:json/update-valid-payload.json"));
 		final HttpEntity<String> entity = new HttpEntity<String>(json.toString(), headers);
-		final ResponseEntity<String> response = restTemplate.exchange(buildURL(port, ENDPOINT_DOCUMENT), HttpMethod.PUT, entity, String.class, idDefaultParam);
+		final ResponseEntity<String> response = restTemplate.exchange(buildURL(port, ENDPOINT_RESOURCE), HttpMethod.PUT, entity, String.class, idDefaultParam);
 
 		assertThat(response.getHeaders().getContentType(), is(MediaType.APPLICATION_JSON));
 		assertThat(response.getStatusCode(), is(HttpStatus.OK));
@@ -170,7 +170,7 @@ public class ProductControllerIT {
 
 		final JSONObject json = new JSONObject(jsonFromFile("classpath:json/update-valid-payload.json"));
 		final HttpEntity<String> entity = new HttpEntity<String>(json.toString(), headers);
-		final ResponseEntity<String> response = restTemplate.exchange(buildURL(port, ENDPOINT_DOCUMENT), HttpMethod.PUT, entity, String.class, idDefaultParam);
+		final ResponseEntity<String> response = restTemplate.exchange(buildURL(port, ENDPOINT_RESOURCE), HttpMethod.PUT, entity, String.class, idDefaultParam);
 
 		assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
 		assertEquals(MediaType.APPLICATION_JSON, response.getHeaders().getContentType());
@@ -184,7 +184,7 @@ public class ProductControllerIT {
 
 		final JSONObject json = new JSONObject(jsonFromFile("classpath:json/update-valid-payload.json"));
 		final HttpEntity<String> entity = new HttpEntity<String>(json.toString(), headers);
-		final ResponseEntity<String> response = restTemplate.exchange(buildURL(port, ENDPOINT_DOCUMENT), HttpMethod.PUT, entity, String.class, idDefaultParam);
+		final ResponseEntity<String> response = restTemplate.exchange(buildURL(port, ENDPOINT_RESOURCE), HttpMethod.PUT, entity, String.class, idDefaultParam);
 
 		assertThat(response.getHeaders().getContentType(), is(MediaType.APPLICATION_JSON));
 		assertThat(response.getStatusCode(), is(HttpStatus.NOT_FOUND));
@@ -198,7 +198,7 @@ public class ProductControllerIT {
 
 		headers.setContentType(MediaType.APPLICATION_JSON);
 
-		final ResponseEntity<String> response = restTemplate.exchange(buildURL(port, ENDPOINT_DOCUMENT), HttpMethod.DELETE, HttpEntity.EMPTY, String.class, idDefaultParam);
+		final ResponseEntity<String> response = restTemplate.exchange(buildURL(port, ENDPOINT_RESOURCE), HttpMethod.DELETE, HttpEntity.EMPTY, String.class, idDefaultParam);
 
 		assertThat(response.getStatusCode(), is(HttpStatus.NO_CONTENT));
 	}
