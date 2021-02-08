@@ -2,13 +2,10 @@ language: java
 sudo: true
 dist: trusty
 jdk:
-- openjdk11
+- oraclejdk11
 services:
 - docker
 addons:
-  apt:
-    packages:
-      - oracle-java11-installer
   sonarcloud:
     organization: "microservices-demos"
     token:
@@ -18,7 +15,7 @@ before_install:
 - chmod +x mvnw
 - mvn clean
 - echo "$DOCKER_PASSWORD" | docker login  -u "$DOCKER_USERNAME" --password-stdin
-- docker pull openjdk:11-jdk-alpine
+- docker pull openjdk:8-jdk-alpine
 script:
 - cp .travis.settings.xml $HOME/.m2/settings.xml
 - cat $HOME/.m2/settings.xml
