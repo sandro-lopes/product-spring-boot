@@ -10,7 +10,7 @@ addons:
     organization: "microservices-demos"
     token:
       secure: 
-       - echo "$SONAR_TOKEN" # encrypted value of your token
+       - echo "$SONAR_TOKEN"
 before_install:
 - chmod +x mvnw
 - mvn clean
@@ -23,5 +23,4 @@ script:
 after_success:
 - travis_wait mvn site -o
 - bash <(curl -s https://codecov.io/bash)
-- mvn clean org.jacoco:jacoco-maven-plugin:prepare-agent install sonar:sonar -Dsonar.projectKey=sandro-lopes_product-spring-boot
-- bash <(curl -s https://codecov.io/bash)
+- mvn clean org.jacoco:jacoco-maven-plugin:prepare-agent install sonar:sonar
