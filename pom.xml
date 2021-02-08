@@ -24,6 +24,9 @@
 		<sonar.host.url>https://sonarcloud.io</sonar.host.url>
 		<maven.deploy.skip>true</maven.deploy.skip>
 		<docker.image.prefix>sandrol</docker.image.prefix>
+		<!-- Useful for Heroku Deployment -->
+        <full-artifact-name>target/${project.artifactId}-${project.version}.jar</full-artifact-name>
+		<heroku-app-name>product-spring-boot</heroku-app-name>
 	</properties>
 
 	<dependencies>
@@ -188,6 +191,19 @@
 					</execution>
 				</executions>
 			</plugin>
+			
+			<!-- Useful for Heroku Deployment -->
+			<plugin>
+		      <groupId>com.heroku.sdk</groupId>
+		      <artifactId>heroku-maven-plugin</artifactId>
+		      <version>2.0.11</version>
+		      <configuration>
+		        <appName>${heroku-app-name}</appName>
+		        <processTypes>
+		          <web>java $JAVA_OPTS -jar -Dserver.port=$PORT ${full-artifact-name}</web>
+		        </processTypes>
+		      </configuration>
+      		</plugin> 
 		</plugins>
 	</build>
 </project>
