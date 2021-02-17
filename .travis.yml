@@ -1,26 +1,39 @@
-language: java
-sudo: true
-dist: trusty
-jdk:
-- oraclejdk11
 services:
 - docker
-addons:
-  sonarcloud:
-    organization: "microservices-demos"
-    token:
-      secure: 
-       - echo "$SONAR_TOKEN"
-before_install:
-- chmod +x mvnw
-- mvn clean
-- echo "$DOCKER_PASSWORD" | docker login  -u "$DOCKER_USERNAME" --password-stdin
-- docker pull openjdk:8-jdk-alpine
-script:
-- cp .travis.settings.xml $HOME/.m2/settings.xml
-- cat $HOME/.m2/settings.xml
-- mvn heroku:deploy
-after_success:
-- travis_wait mvn site -o
-- bash <(curl -s https://codecov.io/bash)
-- mvn clean org.jacoco:jacoco-maven-plugin:prepare-agent install sonar:sonar
+jobs:
+  include:
+    - stage: Build
+      name: Build
+      script:
+      - mvn clean package -Dmaven.test.skip=true
+    - stage: Tests
+      name: Unit Tests
+      script: 
+      - mvn clean test
+    - stage: Tests
+      name: Integration Tests
+      script: 
+      - mvn test-compile failsafe:integration-test
+    - stage: QA
+      name: SonarCloud
+      addons:
+        sonarcloud:
+          organization: "$SONAR_ORGANIZATION"
+          token: "$SONAR_TOKEN"
+      script:
+      - mvn clean org.jacoco:jacoco-maven-plugin:prepare-agent verify sonar:sonar -Dsonar.projectKey="$SONAR_PROJECT_KEY"
+      - chmod +x ./quality-gate-status.sh
+      - ./quality-gate-status.sh
+    - stage: Deploy
+      name: Docker Hub
+      script: 
+      - echo "$DOCKER_PASSWORD" | docker login  -u "$DOCKER_USERNAME" --password-stdin
+      - mvn clean deploy -Dmaven.test.skip=true -Ddocker.image.prefix="$DOCKER_USERNAME"
+    - stage: Deploy
+      name: Heroku
+      script: 
+      - mvn heroku:deploy -Dmaven.test.skip=true
+cache:
+  directories:
+    - '$HOME/.m2/repository'
+    - '$HOME/.sonar/cache'
