@@ -19,12 +19,7 @@
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 		<maven-jar-plugin.version>3.1.1</maven-jar-plugin.version>
-  		<sonar.projectKey>sandro-lopes_product-spring-boot</sonar.projectKey>
-  		<sonar.organization>microservices-demos</sonar.organization>
-		<sonar.host.url>https://sonarcloud.io</sonar.host.url>
 		<maven.deploy.skip>true</maven.deploy.skip>
-		<docker.image.prefix>sandrol</docker.image.prefix>
-		<!-- Useful for Heroku Deployment -->
         <full-artifact-name>target/${project.artifactId}-${project.version}.jar</full-artifact-name>
 		<heroku-app-name>product-spring-boot</heroku-app-name>
 	</properties>
@@ -105,6 +100,7 @@
 				</executions>
 				<configuration>
 					<repository>${docker.image.prefix}/${project.artifactId}</repository>
+					<tag>${project.version}</tag>
 					<serverId>index.docker.io</serverId>
 					<registryUrl>https://index.docker.io:443/v1/</registryUrl>
 				</configuration>
@@ -132,6 +128,25 @@
 						</configuration>
 					</execution>
 				</executions>
+			</plugin>
+			
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+			    <artifactId>maven-failsafe-plugin</artifactId>
+			    <configuration>
+			        <includes>
+			            <include>**/*IT.java</include>
+			        </includes>
+			    </configuration>
+			    <executions>
+			        <execution>
+			            <id>failsafe-integration-tests</id>
+			            <phase>integration-test</phase>
+			            <goals>
+			                <goal>integration-test</goal>
+			            </goals>
+			        </execution>
+			    </executions>
 			</plugin>
 			
 			<plugin>
