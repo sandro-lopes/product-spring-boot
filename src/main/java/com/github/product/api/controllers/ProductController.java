@@ -9,7 +9,10 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort.Direction;
 import org.springframework.data.web.PageableDefault;
-import org.springframework.hateoas.server.mvc.WebMvcLinkBuilder;
+import org.springframework.hateoas.IanaLinkRelations;
+import org.springframework.hateoas.Link;
+import org.springframework.hateoas.MediaTypes;
+import org.springframework.hateoas.PagedModel;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
@@ -23,21 +26,25 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.github.product.api.assemblers.ProductAssembler;
 import com.github.product.api.entities.Product;
 import com.github.product.api.exceptions.NotFoundException;
+import com.github.product.api.models.ProductModel;
 import com.github.product.api.services.ProductService;
 
 import lombok.RequiredArgsConstructor;
 
 @RestController
-@RequestMapping(produces = MediaType.APPLICATION_JSON_VALUE)
+@RequestMapping(produces = { MediaType.APPLICATION_JSON_VALUE, MediaTypes.HAL_JSON_VALUE })
 @RequiredArgsConstructor
 public class ProductController {
 
 	private final ProductService service;
 	
+	private final ProductAssembler assembler;
+	
 	@GetMapping
-	public ResponseEntity<Page<Product>> search(
+	public ResponseEntity<PagedModel<ProductModel>> search(
 			@RequestParam(value = "name", required = false) final String name,
 			@RequestParam(value = "price", required = false) final BigDecimal price,
 			@RequestParam(value = "quantity", required = false) final Integer quantity,
@@ -46,32 +53,31 @@ public class ProductController {
 		Page<Product> page = service.search(name, price, quantity, pageable);
 		
 		return ResponseEntity
-				.ok(page);
+				.ok(assembler.toPagedModel(page));
 	}
 	
 	@PostMapping (consumes = MediaType.APPLICATION_JSON_VALUE)
 	@Transactional
-	public ResponseEntity<Product> create(@Valid @RequestBody Product product) {
+	public ResponseEntity<ProductModel> create(@Valid @RequestBody Product product) {
 
 		Product newProduct = service.create(product);
 		
-		URI uri = WebMvcLinkBuilder
-				.linkTo(ProductController.class)
-				.slash(newProduct.getId())
-				.toUri();
-
+		ProductModel productModel = assembler.toModel(newProduct);
+		
+		URI uri = productModel.getLink(IanaLinkRelations.SELF).map(Link::toUri).orElse(null);
+		
 		return ResponseEntity
 				.created(uri)
-				.body(newProduct);
+				.body(productModel);
 	}
 	
 	@GetMapping("/{id}")
-	public ResponseEntity<Product> find(@PathVariable("id") Integer id) {
+	public ResponseEntity<ProductModel> find(@PathVariable("id") Integer id) {
 		
 		Product product = service.find(id).orElseThrow(NotFoundException::new);
 		
 		return ResponseEntity
-				.ok(product);
+				.ok(assembler.toModel(product));
 	}
 	
 	@PutMapping(path = "/{id}", consumes = MediaType.APPLICATION_JSON_VALUE)
@@ -90,6 +96,9 @@ public class ProductController {
 	public ResponseEntity<Void> remove(@PathVariable Integer id) {
 		
 		service.delete(id);
-		return ResponseEntity.noContent().build();
+		
+		return ResponseEntity
+				.noContent()
+				.build();
 	}
 }
