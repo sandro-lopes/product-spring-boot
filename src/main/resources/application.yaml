@@ -1,6 +1,15 @@
+#management:
+#  endpoints:
+#    web:
+#      exposure:
+#        include: health, info
+#
 spring:
   profiles:
     active: prod
+
+  hateoas:
+    use-hal-as-default-json-media-type: false
     
   datasource:
     driverClassName: org.h2.Driver
